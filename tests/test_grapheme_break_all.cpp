@@ -17,10 +17,9 @@ struct TestCase {
 class GraphemeBreakTest : public ::testing::TestWithParam<TestCase> {};
 
 TEST_P(GraphemeBreakTest, Segmentation) {
-    const auto& tc = GetParam();
-    auto result = segmentGraphemeClusters(tc.input);
-    EXPECT_EQ(result, tc.expected)
-        << "Failed at line " << tc.line_no << ": " << tc.comment;
+    const auto&[line_no, input, expected, comment] = GetParam();
+    const auto result = segmentGraphemeClusters(input);
+    EXPECT_EQ(result, expected) << "Failed at line " << line_no << ": " << comment;
 }
 
 const TestCase test_cases[] = {

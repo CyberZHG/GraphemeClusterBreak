@@ -109,9 +109,13 @@ namespace grapheme_cluster {
         // GB1: sot ÷ Any
         std::vector<std::int32_t>::difference_type lastBreak = 0;
         GraphemeClusterBreakProperty currentBreakProperty = findBreakProperty(codepoints[0]);
-        EmojiModifierState emojiModifierState = EmojiModifierState::Initial;
+        auto emojiModifierState = EmojiModifierState::Initial;
         if (currentBreakProperty == Extended_Pictographic) {
             emojiModifierState = EmojiModifierState::Pictographic;
+        }
+        size_t regionIndicatorCount = 0;
+        if (currentBreakProperty == Regional_Indicator) {
+            regionIndicatorCount = 1;
         }
         std::vector<std::vector<std::int32_t>> result;
         for (size_t i = 0; i + 1 < n; ++i) {
@@ -141,10 +145,14 @@ namespace grapheme_cluster {
                 // GB9b: Prepend ×
             } else if (emojiModifierState == EmojiModifierState::ZWJ && nextBreakProperty == Extended_Pictographic) {
                 // GB11: \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
+            } else if (nextBreakProperty == Regional_Indicator && regionIndicatorCount % 2 == 1) {
+                // GB12: sot (RI RI)* RI × RI
+                // GB13: [^RI] (RI RI)* RI × RI
             } else {
                 // GB999: Any ÷ Any
                 breakCluster = true;
             }
+            // Update emoji modifier state
             switch (emojiModifierState) {
                 case EmojiModifierState::Initial:
                     break;
@@ -164,6 +172,12 @@ namespace grapheme_cluster {
             }
             if (emojiModifierState == EmojiModifierState::Initial && nextBreakProperty == Extended_Pictographic) {
                 emojiModifierState = EmojiModifierState::Pictographic;
+            }
+            // Update regional indicator state
+            if (nextBreakProperty == Regional_Indicator) {
+                ++regionIndicatorCount;
+            } else {
+                regionIndicatorCount = 0;
             }
             if (breakCluster) {
                 const auto offset = static_cast<std::vector<std::int32_t>::difference_type>(i + 1);
