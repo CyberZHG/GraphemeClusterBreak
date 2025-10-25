@@ -1,6 +1,6 @@
 #include "break_properties.h"
 
-namespace grapheme_break {
+namespace grapheme_cluster {
 
     static constexpr auto CR = GraphemeClusterBreakProperty::CR;
     static constexpr auto LF = GraphemeClusterBreakProperty::LF;

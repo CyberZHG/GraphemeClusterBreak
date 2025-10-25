@@ -38,6 +38,8 @@ endif()
 add_library(GraphemeBreak STATIC
         include/break_properties.h
         src/break_properties.cpp
+        include/grapheme_cluster.h
+        src/grapheme_cluster.cpp
 )
 
 target_include_directories(GraphemeBreak
@@ -60,6 +62,7 @@ if(GRAPHEME_BREAK_ENABLE_TESTS)
     add_executable(runTests
             tests/main.cpp
             tests/test_break_properties.cpp
+            tests/test_grapheme_break_test_all.cpp
     )
 
     target_link_libraries(runTests
