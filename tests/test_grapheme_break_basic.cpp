@@ -12,42 +12,49 @@ TEST(TestSegmentBasic, EmptyString) {
 
 TEST(TestSegmentBasic, GB3) {
     const string s = "\r\n";
-    const auto expected = vector{"\r\n"};
+    const auto expected = vector<string>{"\r\n"};
     const auto segmented = segmentGraphemeClusters(s);
-    EXPECT_EQ(expected.size(), segmented.size());
+    EXPECT_EQ(expected, segmented);
 }
 
 TEST(TestSegmentBasic, GB3__Inverse) {
     const string s = "\n\r";
-    const auto expected = vector{"\n", "\r"};
+    const auto expected = vector<string>{"\n", "\r"};
     const auto segmented = segmentGraphemeClusters(s);
-    EXPECT_EQ(expected.size(), segmented.size());
+    EXPECT_EQ(expected, segmented);
 }
 
 TEST(TestSegmentBasic, GB4) {
     const string s = "\na";
-    const auto expected = vector{"\n", "a"};
+    const auto expected = vector<string>{"\n", "a"};
     const auto segmented = segmentGraphemeClusters(s);
-    EXPECT_EQ(expected.size(), segmented.size());
+    EXPECT_EQ(expected, segmented);
 }
 
 TEST(TestSegmentBasic, GB5) {
     const string s = "a\n";
-    const auto expected = vector{"a", "\n"};
+    const auto expected = vector<string>{"a", "\n"};
     const auto segmented = segmentGraphemeClusters(s);
-    EXPECT_EQ(expected.size(), segmented.size());
+    EXPECT_EQ(expected, segmented);
 }
 
 TEST(TestSegmentBasic, GB4_5__n) {
     const string s = "\n\n";
-    const auto expected = vector{"\n", "\n"};
+    const auto expected = vector<string>{"\n", "\n"};
     const auto segmented = segmentGraphemeClusters(s);
-    EXPECT_EQ(expected.size(), segmented.size());
+    EXPECT_EQ(expected, segmented);
 }
 
 TEST(TestSegmentBasic, GB4_5__r) {
     const string s = "\r\r";
-    const auto expected = vector{"\r", "\r"};
+    const auto expected = vector<string>{"\r", "\r"};
     const auto segmented = segmentGraphemeClusters(s);
-    EXPECT_EQ(expected.size(), segmented.size());
+    EXPECT_EQ(expected, segmented);
+}
+
+TEST(TestSegmentBasic, GB9c__ZWJ) {
+    const vector<int32_t> codepoints = {0x0915, 0x094D, 0x200D, 0x0924};
+    const auto expected = vector<vector<int32_t>>{codepoints};
+    const auto segmented = segmentGraphemeClusters(codepoints);
+    EXPECT_EQ(expected, segmented);
 }

@@ -101,7 +101,7 @@ namespace grapheme_cluster {
         // GB9c: \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]*
         //       \p{InCB=Linker}
         //       [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
-        Initial, Consonant, Linker1,
+        Initial, Consonant, Linker,
     };
 
     std::vector<std::vector<std::int32_t>> segmentGraphemeClusters(const std::vector<std::int32_t>& codepoints) {
@@ -116,7 +116,7 @@ namespace grapheme_cluster {
         std::vector<std::int32_t>::difference_type lastBreak = 0;
         auto currentBreakProperty = findBreakProperty(codepoints[0]);
         auto indicState = IndicState::Initial;
-        if (findIndicBreakProperty(codepoints[0]) == IndicConjunctBreakProperty::InCB_Consonant) {
+        if (findIndicBreakProperty(codepoints[0]) == InCB_Consonant) {
             indicState = IndicState::Consonant;
         }
         auto emojiModifierState = EmojiModifierState::Initial;
@@ -155,7 +155,7 @@ namespace grapheme_cluster {
                 // GB9a: × SpacingMark
             } else if (currentBreakProperty == Prepend) {
                 // GB9b: Prepend ×
-            } else if (indicState == IndicState::Linker1 && nextIndicBreakProperty == InCB_Consonant) {
+            } else if (indicState == IndicState::Linker && nextIndicBreakProperty == InCB_Consonant) {
                 // GB9c: \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]*
                 //       \p{InCB=Linker}
                 //       [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
@@ -174,19 +174,17 @@ namespace grapheme_cluster {
                 case IndicState::Initial:
                     break;
                 case IndicState::Consonant:
-                    if (nextIndicBreakProperty == IndicConjunctBreakProperty::InCB_Extend) {
+                    if (nextIndicBreakProperty == InCB_Extend) {
                         indicState = IndicState::Consonant;
-                    } else if (nextIndicBreakProperty == IndicConjunctBreakProperty::InCB_Linker) {
-                        indicState = IndicState::Linker1;
+                    } else if (nextIndicBreakProperty == InCB_Linker) {
+                        indicState = IndicState::Linker;
                     } else {
                         indicState = IndicState::Initial;
                     }
                     break;
-                case IndicState::Linker1:
-                    if (nextIndicBreakProperty == IndicConjunctBreakProperty::InCB_Extend) {
-                        indicState = IndicState::Linker1;
-                    } else if (nextIndicBreakProperty == IndicConjunctBreakProperty::InCB_Linker) {
-                        indicState = IndicState::Linker1;
+                case IndicState::Linker:
+                    if (nextIndicBreakProperty == InCB_Extend || nextIndicBreakProperty == InCB_Linker) {
+                        indicState = IndicState::Linker;
                     } else {
                         indicState = IndicState::Initial;
                     }
