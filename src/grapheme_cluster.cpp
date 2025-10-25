@@ -116,6 +116,23 @@ namespace grapheme_cluster {
             } else if (nextBreakProperty == Control || nextBreakProperty == CR || nextBreakProperty == LF) {
                 // GB5: ÷ (Control | CR | LF)
                 breakCluster = true;
+            } else if (currentBreakProperty == L && (nextBreakProperty == L || nextBreakProperty == V
+                || nextBreakProperty == LV || nextBreakProperty == LVT)) {
+                // GB6: L × (L | V | LV | LVT)
+            } else if ((currentBreakProperty == LV || currentBreakProperty == V)
+                && (nextBreakProperty == V || nextBreakProperty == T)) {
+                // GB7: (LV | V) × (V | T)
+            } else if ((currentBreakProperty == LVT || currentBreakProperty == T) && nextBreakProperty == T) {
+                // GB8: (LVT | T) × T
+            } else if (nextBreakProperty == Extend || nextBreakProperty == ZWJ) {
+                // GB9: × (Extend | ZWJ)
+            } else if (nextBreakProperty == SpacingMark) {
+                // GB9a: × SpacingMark
+            } else if (currentBreakProperty == Prepend) {
+                // GB9b: Prepend ×
+            } else {
+                // GB999: Any ÷ Any
+                breakCluster = true;
             }
             if (breakCluster) {
                 const auto offset = static_cast<std::vector<std::int32_t>::difference_type>(i + 1);
