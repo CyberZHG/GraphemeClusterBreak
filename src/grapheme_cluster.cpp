@@ -19,7 +19,6 @@ namespace grapheme_cluster {
     static constexpr auto Prepend = GraphemeClusterBreakProperty::Prepend;
     static constexpr auto Extended_Pictographic = GraphemeClusterBreakProperty::Extended_Pictographic;
     static constexpr auto Regional_Indicator = GraphemeClusterBreakProperty::Regional_Indicator;
-    static constexpr auto Other = GraphemeClusterBreakProperty::Other;
 
     static constexpr auto InCB_Consonant = IndicConjunctBreakProperty::InCB_Consonant;
     static constexpr auto InCB_Linker = IndicConjunctBreakProperty::InCB_Linker;
@@ -95,7 +94,14 @@ namespace grapheme_cluster {
 
     enum class EmojiModifierState {
         // GB11: \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
-        Initial, Pictographic, Extend, ZWJ,
+        Initial, Pictographic, ZWJ,
+    };
+
+    enum class IndicState {
+        // GB9c: \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]*
+        //       \p{InCB=Linker}
+        //       [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
+        Initial, Consonant, Linker1,
     };
 
     std::vector<std::vector<std::int32_t>> segmentGraphemeClusters(const std::vector<std::int32_t>& codepoints) {
@@ -108,7 +114,11 @@ namespace grapheme_cluster {
         }
         // GB1: sot ÷ Any
         std::vector<std::int32_t>::difference_type lastBreak = 0;
-        GraphemeClusterBreakProperty currentBreakProperty = findBreakProperty(codepoints[0]);
+        auto currentBreakProperty = findBreakProperty(codepoints[0]);
+        auto indicState = IndicState::Initial;
+        if (findIndicBreakProperty(codepoints[0]) == IndicConjunctBreakProperty::InCB_Consonant) {
+            indicState = IndicState::Consonant;
+        }
         auto emojiModifierState = EmojiModifierState::Initial;
         if (currentBreakProperty == Extended_Pictographic) {
             emojiModifierState = EmojiModifierState::Pictographic;
@@ -119,7 +129,9 @@ namespace grapheme_cluster {
         }
         std::vector<std::vector<std::int32_t>> result;
         for (size_t i = 0; i + 1 < n; ++i) {
-            const GraphemeClusterBreakProperty nextBreakProperty = findBreakProperty(codepoints[i + 1]);
+            const auto nextBreakProperty = findBreakProperty(codepoints[i + 1]);
+            const auto nextIndicBreakProperty = findIndicBreakProperty(codepoints[i + 1]);
+
             bool breakCluster = false;
             if (currentBreakProperty == CR && nextBreakProperty == LF) {
                 // GB3: CR × LF
@@ -143,6 +155,10 @@ namespace grapheme_cluster {
                 // GB9a: × SpacingMark
             } else if (currentBreakProperty == Prepend) {
                 // GB9b: Prepend ×
+            } else if (indicState == IndicState::Linker1 && nextIndicBreakProperty == InCB_Consonant) {
+                // GB9c: \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]*
+                //       \p{InCB=Linker}
+                //       [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
             } else if (emojiModifierState == EmojiModifierState::ZWJ && nextBreakProperty == Extended_Pictographic) {
                 // GB11: \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
             } else if (nextBreakProperty == Regional_Indicator && regionIndicatorCount % 2 == 1) {
@@ -152,14 +168,41 @@ namespace grapheme_cluster {
                 // GB999: Any ÷ Any
                 breakCluster = true;
             }
+
+            // Update indic conjunct break state
+            switch (indicState) {
+                case IndicState::Initial:
+                    break;
+                case IndicState::Consonant:
+                    if (nextIndicBreakProperty == IndicConjunctBreakProperty::InCB_Extend) {
+                        indicState = IndicState::Consonant;
+                    } else if (nextIndicBreakProperty == IndicConjunctBreakProperty::InCB_Linker) {
+                        indicState = IndicState::Linker1;
+                    } else {
+                        indicState = IndicState::Initial;
+                    }
+                    break;
+                case IndicState::Linker1:
+                    if (nextIndicBreakProperty == IndicConjunctBreakProperty::InCB_Extend) {
+                        indicState = IndicState::Linker1;
+                    } else if (nextIndicBreakProperty == IndicConjunctBreakProperty::InCB_Linker) {
+                        indicState = IndicState::Linker1;
+                    } else {
+                        indicState = IndicState::Initial;
+                    }
+                    break;
+            }
+            if (indicState == IndicState::Initial && nextIndicBreakProperty == InCB_Consonant) {
+                indicState = IndicState::Consonant;
+            }
+
             // Update emoji modifier state
             switch (emojiModifierState) {
                 case EmojiModifierState::Initial:
                     break;
-                case EmojiModifierState::Extend:
                 case EmojiModifierState::Pictographic:
                     if (nextBreakProperty == Extend) {
-                        emojiModifierState = EmojiModifierState::Extend;
+                        emojiModifierState = EmojiModifierState::Pictographic;
                     } else if (nextBreakProperty == ZWJ) {
                         emojiModifierState = EmojiModifierState::ZWJ;
                     } else {
@@ -173,12 +216,14 @@ namespace grapheme_cluster {
             if (emojiModifierState == EmojiModifierState::Initial && nextBreakProperty == Extended_Pictographic) {
                 emojiModifierState = EmojiModifierState::Pictographic;
             }
+
             // Update regional indicator state
             if (nextBreakProperty == Regional_Indicator) {
                 ++regionIndicatorCount;
             } else {
                 regionIndicatorCount = 0;
             }
+
             if (breakCluster) {
                 const auto offset = static_cast<std::vector<std::int32_t>::difference_type>(i + 1);
                 result.emplace_back(codepoints.begin() + lastBreak, codepoints.begin() + offset);
