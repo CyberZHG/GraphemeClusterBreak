@@ -62,7 +62,8 @@ if(GRAPHEME_BREAK_ENABLE_TESTS)
     add_executable(runTests
             tests/main.cpp
             tests/test_break_properties.cpp
-            tests/test_grapheme_break_test_all.cpp
+            tests/test_grapheme_break_all.cpp
+            tests/test_grapheme_break_basic.cpp
     )
 
     target_link_libraries(runTests

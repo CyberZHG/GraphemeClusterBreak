@@ -1,6 +1,30 @@
 #include "grapheme_cluster.h"
+#include "break_properties.h"
+
+#include <format>
 
 namespace grapheme_cluster {
+
+    static constexpr auto CR = GraphemeClusterBreakProperty::CR;
+    static constexpr auto LF = GraphemeClusterBreakProperty::LF;
+    static constexpr auto Control = GraphemeClusterBreakProperty::Control;
+    static constexpr auto L = GraphemeClusterBreakProperty::L;
+    static constexpr auto V = GraphemeClusterBreakProperty::V;
+    static constexpr auto T = GraphemeClusterBreakProperty::T;
+    static constexpr auto LV = GraphemeClusterBreakProperty::LV;
+    static constexpr auto LVT = GraphemeClusterBreakProperty::LVT;
+    static constexpr auto Extend = GraphemeClusterBreakProperty::Extend;
+    static constexpr auto ZWJ = GraphemeClusterBreakProperty::ZWJ;
+    static constexpr auto SpacingMark = GraphemeClusterBreakProperty::SpacingMark;
+    static constexpr auto Prepend = GraphemeClusterBreakProperty::Prepend;
+    static constexpr auto Extended_Pictographic = GraphemeClusterBreakProperty::Extended_Pictographic;
+    static constexpr auto Regional_Indicator = GraphemeClusterBreakProperty::Regional_Indicator;
+    static constexpr auto Other = GraphemeClusterBreakProperty::Other;
+
+    static constexpr auto InCB_Consonant = IndicConjunctBreakProperty::InCB_Consonant;
+    static constexpr auto InCB_Linker = IndicConjunctBreakProperty::InCB_Linker;
+    static constexpr auto InCB_Extend = IndicConjunctBreakProperty::InCB_Extend;
+    static constexpr auto InCB_Other = IndicConjunctBreakProperty::InCB_Other;
 
     static std::vector<std::int32_t> utf8ToCodepoints(const std::string& utf8) {
         std::vector<std::int32_t> result;
@@ -56,7 +80,10 @@ namespace grapheme_cluster {
         return result;
     }
 
-    std::vector<std::string> segmentGraphemeClusters(std::string& s) {
+    std::vector<std::string> segmentGraphemeClusters(const std::string& s) {
+        if (s.empty()) {
+            return {};
+        }
         const auto codepoints = utf8ToCodepoints(s);
         const auto segments = segmentGraphemeClusters(codepoints);
         std::vector<std::string> result(segments.size());
@@ -67,7 +94,39 @@ namespace grapheme_cluster {
     }
 
     std::vector<std::vector<std::int32_t>> segmentGraphemeClusters(const std::vector<std::int32_t>& codepoints) {
-        return {codepoints};
+        if (codepoints.empty()) {
+            return {};
+        }
+        const auto n = codepoints.size();
+        if (n > std::numeric_limits<std::vector<std::int32_t>::difference_type>::max()) {
+            throw std::runtime_error(std::format("Can not process large vector with size: {}", n));
+        }
+        // GB1: sot ÷ Any
+        std::vector<std::int32_t>::difference_type lastBreak = 0;
+        GraphemeClusterBreakProperty currentBreakProperty = findBreakProperty(codepoints[0]);
+        std::vector<std::vector<std::int32_t>> result;
+        for (size_t i = 0; i + 1 < n; ++i) {
+            const GraphemeClusterBreakProperty nextBreakProperty = findBreakProperty(codepoints[i + 1]);
+            bool breakCluster = false;
+            if (currentBreakProperty == CR && nextBreakProperty == LF) {
+                // GB3: CR × LF
+            } else if (currentBreakProperty == Control || currentBreakProperty == CR || currentBreakProperty == LF) {
+                // GB4: (Control | CR | LF)	÷
+                breakCluster = true;
+            } else if (nextBreakProperty == Control || nextBreakProperty == CR || nextBreakProperty == LF) {
+                // GB5: ÷ (Control | CR | LF)
+                breakCluster = true;
+            }
+            if (breakCluster) {
+                const auto offset = static_cast<std::vector<std::int32_t>::difference_type>(i + 1);
+                result.emplace_back(codepoints.begin() + lastBreak, codepoints.begin() + offset);
+                lastBreak = offset;
+            }
+            currentBreakProperty = nextBreakProperty;
+        }
+        // GB2: Any ÷ eot
+        result.emplace_back(codepoints.begin() + lastBreak, codepoints.end());
+        return result;
     }
 
 }
