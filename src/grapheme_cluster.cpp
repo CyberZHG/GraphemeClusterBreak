@@ -93,6 +93,11 @@ namespace grapheme_cluster {
         return result;
     }
 
+    enum class EmojiModifierState {
+        // GB11: \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
+        Initial, Pictographic, Extend, ZWJ,
+    };
+
     std::vector<std::vector<std::int32_t>> segmentGraphemeClusters(const std::vector<std::int32_t>& codepoints) {
         if (codepoints.empty()) {
             return {};
@@ -104,6 +109,10 @@ namespace grapheme_cluster {
         // GB1: sot ÷ Any
         std::vector<std::int32_t>::difference_type lastBreak = 0;
         GraphemeClusterBreakProperty currentBreakProperty = findBreakProperty(codepoints[0]);
+        EmojiModifierState emojiModifierState = EmojiModifierState::Initial;
+        if (currentBreakProperty == Extended_Pictographic) {
+            emojiModifierState = EmojiModifierState::Pictographic;
+        }
         std::vector<std::vector<std::int32_t>> result;
         for (size_t i = 0; i + 1 < n; ++i) {
             const GraphemeClusterBreakProperty nextBreakProperty = findBreakProperty(codepoints[i + 1]);
@@ -130,9 +139,31 @@ namespace grapheme_cluster {
                 // GB9a: × SpacingMark
             } else if (currentBreakProperty == Prepend) {
                 // GB9b: Prepend ×
+            } else if (emojiModifierState == EmojiModifierState::ZWJ && nextBreakProperty == Extended_Pictographic) {
+                // GB11: \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
             } else {
                 // GB999: Any ÷ Any
                 breakCluster = true;
+            }
+            switch (emojiModifierState) {
+                case EmojiModifierState::Initial:
+                    break;
+                case EmojiModifierState::Extend:
+                case EmojiModifierState::Pictographic:
+                    if (nextBreakProperty == Extend) {
+                        emojiModifierState = EmojiModifierState::Extend;
+                    } else if (nextBreakProperty == ZWJ) {
+                        emojiModifierState = EmojiModifierState::ZWJ;
+                    } else {
+                        emojiModifierState = EmojiModifierState::Initial;
+                    }
+                    break;
+                case EmojiModifierState::ZWJ:
+                    emojiModifierState = EmojiModifierState::Initial;
+                    break;
+            }
+            if (emojiModifierState == EmojiModifierState::Initial && nextBreakProperty == Extended_Pictographic) {
+                emojiModifierState = EmojiModifierState::Pictographic;
             }
             if (breakCluster) {
                 const auto offset = static_cast<std::vector<std::int32_t>::difference_type>(i + 1);

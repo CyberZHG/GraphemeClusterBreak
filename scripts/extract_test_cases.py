@@ -77,6 +77,59 @@ def escape_cpp_string(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
 
+def codepoint_to_utf8_bytes(cp: int) -> bytes:
+    """Convert a single codepoint to UTF-8 bytes."""
+    if cp < 0x80:
+        return bytes([cp])
+    elif cp < 0x800:
+        return bytes([0xC0 | (cp >> 6), 0x80 | (cp & 0x3F)])
+    elif cp < 0x10000:
+        return bytes([0xE0 | (cp >> 12), 0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F)])
+    else:
+        return bytes([0xF0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3F),
+                      0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F)])
+
+
+def codepoints_to_utf8_bytes(codepoints: list) -> bytes:
+    """Convert codepoints to UTF-8 bytes."""
+    result = b""
+    for cp in codepoints:
+        result += codepoint_to_utf8_bytes(cp)
+    return result
+
+
+def bytes_to_cpp_string_literal(data: bytes) -> str:
+    """Convert bytes to a C++ UTF-8 string literal."""
+    result = 'u8"'
+    for b in data:
+        if b == ord('"'):
+            result += '\\"'
+        elif b == ord('\\'):
+            result += '\\\\'
+        elif b == 0x00:
+            result += '\\0'
+        elif b == 0x0A:
+            result += '\\n'
+        elif b == 0x0D:
+            result += '\\r'
+        elif b == 0x09:
+            result += '\\t'
+        elif b < 0x20 or b == 0x7F:
+            # Other control characters
+            result += f"\\x{b:02X}"
+        else:
+            # Printable ASCII or UTF-8 continuation bytes
+            result += chr(b)
+    result += '"'
+    return result
+
+
+def segments_to_cpp_string_vector(segments: list) -> str:
+    """Convert segments to C++ vector<string> initializer."""
+    literals = [bytes_to_cpp_string_literal(codepoints_to_utf8_bytes(seg)) for seg in segments]
+    return "{" + ", ".join(literals) + "}"
+
+
 def main():
     test_cases = []
 
@@ -139,10 +192,61 @@ INSTANTIATE_TEST_SUITE_P(
 }  // namespace
 '''
 
-    with open(TESTS_DIR / "test_grapheme_break_test_all.cpp", "w", encoding="utf-8") as f:
+    with open(TESTS_DIR / "test_grapheme_break_all.cpp", "w", encoding="utf-8") as f:
         f.write(cpp_code)
 
-    print(f"Generated {len(test_cases)} test cases")
+    print(f"Generated {len(test_cases)} test cases (codepoints)")
+
+    # Generate UTF-8 string test file
+    cpp_code_utf8 = '''#include <gtest/gtest.h>
+#include <vector>
+#include <string>
+#include "grapheme_cluster.h"
+
+using namespace grapheme_cluster;
+
+namespace {
+
+struct TestCase {
+    int line_no;
+    std::string input;
+    std::vector<std::string> expected;
+    const char* comment;
+};
+
+class GraphemeBreakUtf8Test : public ::testing::TestWithParam<TestCase> {};
+
+TEST_P(GraphemeBreakUtf8Test, Segmentation) {
+    const auto& tc = GetParam();
+    auto result = segmentGraphemeClusters(tc.input);
+    EXPECT_EQ(result, tc.expected)
+        << "Failed at line " << tc.line_no << ": " << tc.comment;
+}
+
+const TestCase test_cases[] = {
+'''
+
+    for line_no, codepoints, segments, comment in test_cases:
+        input_str = bytes_to_cpp_string_literal(codepoints_to_utf8_bytes(codepoints))
+        expected_str = segments_to_cpp_string_vector(segments)
+        comment_escaped = escape_cpp_string(comment)
+        cpp_code_utf8 += f'    {{{line_no}, {input_str}, {expected_str}, "{comment_escaped}"}},\n'
+
+    cpp_code_utf8 += '''};
+
+INSTANTIATE_TEST_SUITE_P(
+    AllCases,
+    GraphemeBreakUtf8Test,
+    ::testing::ValuesIn(test_cases)
+);
+
+}  // namespace
+'''
+
+    with open(TESTS_DIR / "test_grapheme_break_all_utf8.cpp", "w", encoding="utf-8") as f:
+        f.write(cpp_code_utf8)
+
+    print(f"Generated {len(test_cases)} test cases (utf8)")
 
 
 if __name__ == "__main__":
