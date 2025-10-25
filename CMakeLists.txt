@@ -8,6 +8,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(GRAPHEME_BREAK_ENABLE_STRICT "Use strict compile options" OFF)
 option(GRAPHEME_BREAK_ENABLE_COVERAGE "Enable coverage reporting" OFF)
+option(GRAPHEME_BREAK_ENABLE_TESTS "Build tests" OFF)
 
 if(APPLE)
     set(ENV{PKG_CONFIG_PATH} "/opt/homebrew/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
@@ -35,10 +36,37 @@ if(GRAPHEME_BREAK_ENABLE_COVERAGE)
 endif()
 
 add_library(GraphemeBreak STATIC
-        include/properties.h
-        src/properties.cpp
+        include/break_properties.h
+        src/break_properties.cpp
 )
 
 target_include_directories(GraphemeBreak
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+if(GRAPHEME_BREAK_ENABLE_TESTS)
+    enable_testing()
+
+    include(FetchContent)
+
+    FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG v1.17.0
+    )
+
+    FetchContent_MakeAvailable(googletest)
+
+    add_executable(runTests
+            tests/main.cpp
+            tests/test_break_properties.cpp
+    )
+
+    target_link_libraries(runTests
+            PRIVATE GraphemeBreak
+            PRIVATE gtest gtest_main
+    )
+
+    add_test(NAME GraphemeBreakTests COMMAND runTests)
+
+endif()
