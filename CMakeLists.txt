@@ -97,3 +97,24 @@ if(GRAPHEME_CLUSTER_BREAK_BIND_PYTHON)
             LIBRARY DESTINATION grapheme_cluster_break)
     install(FILES python/wrapper/__init__.py DESTINATION grapheme_cluster_break)
 endif()
+
+if (GRAPHEME_CLUSTER_BREAK_BIND_ES)
+    add_executable(GraphemeClusterBreakWASM
+            wasm/binding.cpp)
+
+    target_link_libraries(GraphemeClusterBreakWASM
+            PRIVATE GraphemeClusterBreak
+    )
+
+    target_compile_options(GraphemeClusterBreakWASM PRIVATE "-O3")
+
+    set_target_properties(GraphemeClusterBreakWASM PROPERTIES SUFFIX ".js")
+
+    target_link_options(GraphemeClusterBreakWASM PRIVATE
+            "--bind"
+            "-sMODULARIZE=1"
+            "-sEXPORT_ES6=1"
+            "-sEXPORT_NAME=GraphemeClusterBreakWASMModule"
+            "-sNO_DISABLE_EXCEPTION_CATCHING"
+    )
+endif ()
