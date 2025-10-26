@@ -23,7 +23,6 @@ namespace grapheme_cluster {
     static constexpr auto InCB_Consonant = IndicConjunctBreakProperty::InCB_Consonant;
     static constexpr auto InCB_Linker = IndicConjunctBreakProperty::InCB_Linker;
     static constexpr auto InCB_Extend = IndicConjunctBreakProperty::InCB_Extend;
-    static constexpr auto InCB_Other = IndicConjunctBreakProperty::InCB_Other;
 
     static std::vector<std::int32_t> utf8ToCodepoints(const std::string& utf8) {
         std::vector<std::int32_t> result;

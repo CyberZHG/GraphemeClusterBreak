@@ -52,6 +52,13 @@ TEST(TestSegmentBasic, GB4_5__r) {
     EXPECT_EQ(expected, segmented);
 }
 
+TEST(TestSegmentBasic, GB4__utf8) {
+    const string s("\x0A\x00", 2);
+    const auto expected = vector<string>{"\x0A", string("\x00", 1)};
+    const auto segmented = segmentGraphemeClusters(s);
+    EXPECT_EQ(expected, segmented);
+}
+
 TEST(TestSegmentBasic, GB9c__ZWJ) {
     const vector<int32_t> codepoints = {0x0915, 0x094D, 0x200D, 0x0924};
     const auto expected = vector<vector<int32_t>>{codepoints};

@@ -63,6 +63,7 @@ if(GRAPHEME_BREAK_ENABLE_TESTS)
             tests/main.cpp
             tests/test_break_properties.cpp
             tests/test_grapheme_break_all.cpp
+            tests/test_grapheme_break_all_utf8.cpp
             tests/test_grapheme_break_basic.cpp
     )
 

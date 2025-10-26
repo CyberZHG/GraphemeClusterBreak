@@ -100,28 +100,7 @@ def codepoints_to_utf8_bytes(codepoints: list) -> bytes:
 
 def bytes_to_cpp_string_literal(data: bytes) -> str:
     """Convert bytes to a C++ UTF-8 string literal."""
-    result = 'u8"'
-    for b in data:
-        if b == ord('"'):
-            result += '\\"'
-        elif b == ord('\\'):
-            result += '\\\\'
-        elif b == 0x00:
-            result += '\\0'
-        elif b == 0x0A:
-            result += '\\n'
-        elif b == 0x0D:
-            result += '\\r'
-        elif b == 0x09:
-            result += '\\t'
-        elif b < 0x20 or b == 0x7F:
-            # Other control characters
-            result += f"\\x{b:02X}"
-        else:
-            # Printable ASCII or UTF-8 continuation bytes
-            result += chr(b)
-    result += '"'
-    return result
+    return 'std::string("' + ''.join(f'\\x{byte:02X}' for byte in data) + f'", {len(data)})'
 
 
 def segments_to_cpp_string_vector(segments: list) -> str:
@@ -166,7 +145,7 @@ struct TestCase {
 class GraphemeBreakTest : public ::testing::TestWithParam<TestCase> {};
 
 TEST_P(GraphemeBreakTest, Segmentation) {
-    const auto&[line_no, input, expected, comment] = GetParam();
+    const auto& [line_no, input, expected, comment] = GetParam();
     const auto result = segmentGraphemeClusters(input);
     EXPECT_EQ(result, expected) << "Failed at line " << line_no << ": " << comment;
 }
@@ -188,7 +167,7 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::ValuesIn(test_cases)
 );
 
-}  // namespace
+}
 '''
 
     with open(TESTS_DIR / "test_grapheme_break_all.cpp", "w", encoding="utf-8") as f:
@@ -216,10 +195,9 @@ struct TestCase {
 class GraphemeBreakUtf8Test : public ::testing::TestWithParam<TestCase> {};
 
 TEST_P(GraphemeBreakUtf8Test, Segmentation) {
-    const auto& tc = GetParam();
-    auto result = segmentGraphemeClusters(tc.input);
-    EXPECT_EQ(result, tc.expected)
-        << "Failed at line " << tc.line_no << ": " << tc.comment;
+    const auto& [line_no, input, expected, comment] = GetParam();
+    const auto result = segmentGraphemeClusters(input);
+    EXPECT_EQ(result, expected) << "Failed at line " << line_no << ": " << comment;
 }
 
 const TestCase test_cases[] = {
@@ -239,7 +217,7 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::ValuesIn(test_cases)
 );
 
-}  // namespace
+}
 '''
 
     with open(TESTS_DIR / "test_grapheme_break_all_utf8.cpp", "w", encoding="utf-8") as f:
