@@ -7,8 +7,8 @@
 
 namespace grapheme_cluster {
 
-    std::vector<std::string> segmentGraphemeClusters(const std::string& s);
-    std::vector<std::vector<std::int32_t>> segmentGraphemeClusters(const std::vector<std::int32_t>& codepoints);
+    std::vector<std::string> segmentGraphemeClusters(const std::string& s, bool extended = true);
+    std::vector<std::vector<std::int32_t>> segmentGraphemeClusters(const std::vector<std::int32_t>& codepoints, bool extended = true);
 
 }
 

@@ -78,12 +78,12 @@ namespace grapheme_cluster {
         return result;
     }
 
-    std::vector<std::string> segmentGraphemeClusters(const std::string& s) {
+    std::vector<std::string> segmentGraphemeClusters(const std::string& s, const bool extended) {
         if (s.empty()) {
             return {};
         }
         const auto codepoints = utf8ToCodepoints(s);
-        const auto segments = segmentGraphemeClusters(codepoints);
+        const auto segments = segmentGraphemeClusters(codepoints, extended);
         std::vector<std::string> result(segments.size());
         for (size_t i = 0; i < segments.size(); ++i) {
             result[i] = codepointsToUtf8(segments[i]);
@@ -103,7 +103,7 @@ namespace grapheme_cluster {
         Initial, Consonant, Linker,
     };
 
-    std::vector<std::vector<std::int32_t>> segmentGraphemeClusters(const std::vector<std::int32_t>& codepoints) {
+    std::vector<std::vector<std::int32_t>> segmentGraphemeClusters(const std::vector<std::int32_t>& codepoints, const bool extended) {
         if (codepoints.empty()) {
             return {};
         }
@@ -115,8 +115,10 @@ namespace grapheme_cluster {
         std::vector<std::int32_t>::difference_type lastBreak = 0;
         auto currentBreakProperty = findBreakProperty(codepoints[0]);
         auto indicState = IndicState::Initial;
-        if (findIndicBreakProperty(codepoints[0]) == InCB_Consonant) {
-            indicState = IndicState::Consonant;
+        if (extended) {
+            if (findIndicBreakProperty(codepoints[0]) == InCB_Consonant) {
+                indicState = IndicState::Consonant;
+            }
         }
         auto emojiModifierState = EmojiModifierState::Initial;
         if (currentBreakProperty == Extended_Pictographic) {
@@ -150,11 +152,11 @@ namespace grapheme_cluster {
                 // GB8: (LVT | T) × T
             } else if (nextBreakProperty == Extend || nextBreakProperty == ZWJ) {
                 // GB9: × (Extend | ZWJ)
-            } else if (nextBreakProperty == SpacingMark) {
+            } else if (extended && nextBreakProperty == SpacingMark) {
                 // GB9a: × SpacingMark
-            } else if (currentBreakProperty == Prepend) {
+            } else if (extended && currentBreakProperty == Prepend) {
                 // GB9b: Prepend ×
-            } else if (indicState == IndicState::Linker && nextIndicBreakProperty == InCB_Consonant) {
+            } else if (extended && indicState == IndicState::Linker && nextIndicBreakProperty == InCB_Consonant) {
                 // GB9c: \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]*
                 //       \p{InCB=Linker}
                 //       [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
@@ -169,28 +171,30 @@ namespace grapheme_cluster {
             }
 
             // Update indic conjunct break state
-            switch (indicState) {
-                case IndicState::Initial:
-                    break;
-                case IndicState::Consonant:
-                    if (nextIndicBreakProperty == InCB_Extend) {
-                        indicState = IndicState::Consonant;
-                    } else if (nextIndicBreakProperty == InCB_Linker) {
-                        indicState = IndicState::Linker;
-                    } else {
-                        indicState = IndicState::Initial;
-                    }
-                    break;
-                case IndicState::Linker:
-                    if (nextIndicBreakProperty == InCB_Extend || nextIndicBreakProperty == InCB_Linker) {
-                        indicState = IndicState::Linker;
-                    } else {
-                        indicState = IndicState::Initial;
-                    }
-                    break;
-            }
-            if (indicState == IndicState::Initial && nextIndicBreakProperty == InCB_Consonant) {
-                indicState = IndicState::Consonant;
+            if (extended) {
+                switch (indicState) {
+                    case IndicState::Initial:
+                        break;
+                    case IndicState::Consonant:
+                        if (nextIndicBreakProperty == InCB_Extend) {
+                            indicState = IndicState::Consonant;
+                        } else if (nextIndicBreakProperty == InCB_Linker) {
+                            indicState = IndicState::Linker;
+                        } else {
+                            indicState = IndicState::Initial;
+                        }
+                        break;
+                    case IndicState::Linker:
+                        if (nextIndicBreakProperty == InCB_Extend || nextIndicBreakProperty == InCB_Linker) {
+                            indicState = IndicState::Linker;
+                        } else {
+                            indicState = IndicState::Initial;
+                        }
+                        break;
+                }
+                if (indicState == IndicState::Initial && nextIndicBreakProperty == InCB_Consonant) {
+                    indicState = IndicState::Consonant;
+                }
             }
 
             // Update emoji modifier state
