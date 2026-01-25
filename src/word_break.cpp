@@ -65,32 +65,20 @@ namespace word_break {
         }
 
         // Precompute properties
-        std::vector<WordBreakProperty> props(n);
+        std::vector<WordBreakProperty> props(n + 1);
         for (size_t i = 0; i < n; ++i) {
             props[i] = findWordBreakProperty(codepoints[i]);
         }
-
-        // Find next non-ignored property (for WB4)
-        auto findNextProp = [&](const size_t pos) -> WordBreakProperty {
-            for (size_t j = pos; j < n; ++j) {
-                if (!isIgnoredForWB4(props[j])) {
-                    return props[j];
-                }
+        props[n] = Other;
+        std::vector<size_t> nextEffectiveIndices(n + 1);
+        size_t lastEffectiveIndex = n;
+        for (int i = static_cast<int>(n - 1); i >= 0; --i) {
+            nextEffectiveIndices[i] = lastEffectiveIndex;
+            if (!isIgnoredForWB4(props[i])) {
+                lastEffectiveIndex = i;
             }
-            return props[n - 1];
-        };
-
-        // Find property at offset after pos, skipping ignored (for lookahead rules)
-        auto findNextNextProp = [&](const size_t pos) -> WordBreakProperty {
-            size_t count = 0;
-            for (size_t j = pos; j < n; ++j) {
-                if (!isIgnoredForWB4(props[j])) {
-                    if (count == 1) return props[j];
-                    ++count;
-                }
-            }
-            return props[n - 1];
-        };
+        }
+        nextEffectiveIndices[n] = n;
 
         // WB1: sot ÷ Any
         std::vector<std::int32_t>::difference_type lastBreak = 0;
@@ -106,8 +94,8 @@ namespace word_break {
             const auto currentProp = props[i];
             const auto nextProp = props[i + 1];
 
-            const auto nextEffective = findNextProp(i + 1);
-            const auto nextNextEffective = findNextNextProp(i + 1);
+            const auto nextEffective = props[nextEffectiveIndices[i]];
+            const auto nextNextEffective = props[nextEffectiveIndices[nextEffectiveIndices[i]]];
 
             if (!isIgnoredForWB4(currentProp)) {
                 prevPrevEffective = prevEffective;

@@ -21,7 +21,7 @@ jobs:
         with:
           cmakeVersion: "latest"
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGRAPHEME_CLUSTER_BREAK_ENABLE_TESTS=ON -DGRAPHEME_CLUSTER_BREAK_ENABLE_COVERAGE=ON
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK=ON -DGRAPHEME_CLUSTER_BREAK_ENABLE_TESTS=ON -DGRAPHEME_CLUSTER_BREAK_ENABLE_COVERAGE=ON
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
