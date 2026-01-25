@@ -25,6 +25,7 @@ namespace word_break {
     static constexpr auto ExtendNumLet = WordBreakProperty::ExtendNumLet;
     static constexpr auto WSegSpace = WordBreakProperty::WSegSpace;
     static constexpr auto Extended_Pictographic = WordBreakProperty::Extended_Pictographic;
+    static constexpr auto Other = WordBreakProperty::Other;
 
     // Helper: AHLetter = ALetter | Hebrew_Letter
     static bool isAHLetter(const WordBreakProperty prop) {
@@ -69,17 +70,6 @@ namespace word_break {
             props[i] = findWordBreakProperty(codepoints[i]);
         }
 
-        // Find previous non-ignored property (for WB4)
-        auto findPrevProp = [&](const size_t pos) -> WordBreakProperty {
-            if (pos == 0) return props[0];
-            for (size_t j = pos; j > 0; --j) {
-                if (!isIgnoredForWB4(props[j - 1])) {
-                    return props[j - 1];
-                }
-            }
-            return props[0];
-        };
-
         // Find next non-ignored property (for WB4)
         auto findNextProp = [&](const size_t pos) -> WordBreakProperty {
             for (size_t j = pos; j < n; ++j) {
@@ -91,7 +81,7 @@ namespace word_break {
         };
 
         // Find property at offset after pos, skipping ignored (for lookahead rules)
-        auto findNextNextProp = [&](size_t pos) -> WordBreakProperty {
+        auto findNextNextProp = [&](const size_t pos) -> WordBreakProperty {
             size_t count = 0;
             for (size_t j = pos; j < n; ++j) {
                 if (!isIgnoredForWB4(props[j])) {
@@ -109,16 +99,20 @@ namespace word_break {
             regionIndicatorCount = 1;
         }
 
+        auto prevEffective = Other;
+        auto prevPrevEffective = Other;
         std::vector<std::vector<std::int32_t>> result;
-
         for (size_t i = 0; i + 1 < n; ++i) {
             const auto currentProp = props[i];
             const auto nextProp = props[i + 1];
 
-            // For WB4: get the "effective" properties ignoring Extend/Format/ZWJ
-            const auto prevEffective = findPrevProp(i);
             const auto nextEffective = findNextProp(i + 1);
             const auto nextNextEffective = findNextNextProp(i + 1);
+
+            if (!isIgnoredForWB4(currentProp)) {
+                prevPrevEffective = prevEffective;
+                prevEffective = currentProp;
+            }
 
             bool breakWord = false;
             if (currentProp == CR && nextProp == LF) {
@@ -141,70 +135,25 @@ namespace word_break {
                 && (nextEffective == MidLetter || isMidNumLetQ(nextEffective))
                 && isAHLetter(nextNextEffective)) {
                 // WB6: AHLetter × (MidLetter | MidNumLetQ) AHLetter
-            } else if (isAHLetter(nextEffective)) {
+            } else if (isAHLetter(prevPrevEffective)
+                && (prevEffective == MidLetter || isMidNumLetQ(prevEffective))
+                && isAHLetter(nextEffective)) {
                 // WB7: AHLetter (MidLetter | MidNumLetQ) × AHLetter
-                bool foundPattern = false;
-                if (prevEffective == MidLetter || isMidNumLetQ(prevEffective)) {
-                    // Check if there's an AHLetter before the mid
-                    size_t midPos = i;
-                    while (midPos > 0 && isIgnoredForWB4(props[midPos])) --midPos;
-                    if (midPos > 0) {
-                        size_t beforeMidPos = midPos - 1;
-                        while (beforeMidPos > 0 && isIgnoredForWB4(props[beforeMidPos])) --beforeMidPos;
-                        if (isAHLetter(props[beforeMidPos]) || (beforeMidPos == 0 && isAHLetter(props[0]))) {
-                            foundPattern = true;
-                        }
-                    }
-                }
-                if (foundPattern) {
-                    // Do not break
-                } else {
-                    breakWord = true;
-                }
             } else if (prevEffective == Hebrew_Letter && nextEffective == Single_Quote) {
                 // WB7a: Hebrew_Letter × Single_Quote
             } else if (prevEffective == Hebrew_Letter && nextEffective == Double_Quote && nextNextEffective == Hebrew_Letter) {
                 // WB7b: Hebrew_Letter × Double_Quote Hebrew_Letter
-            } else if (nextEffective == Hebrew_Letter && prevEffective == Double_Quote) {
+            } else if (prevPrevEffective == Hebrew_Letter && prevEffective == Double_Quote && nextEffective == Hebrew_Letter) {
                 // WB7c: Hebrew_Letter Double_Quote × Hebrew_Letter
-                bool foundPattern = false;
-                size_t dqPos = i;
-                while (dqPos > 0 && isIgnoredForWB4(props[dqPos])) --dqPos;
-                if (dqPos > 0) {
-                    size_t beforeDqPos = dqPos - 1;
-                    while (beforeDqPos > 0 && isIgnoredForWB4(props[beforeDqPos])) --beforeDqPos;
-                    if (props[beforeDqPos] == Hebrew_Letter) {
-                        foundPattern = true;
-                    }
-                }
-                if (foundPattern) {
-                    // Do not break
-                } else {
-                    breakWord = true;
-                }
             } else if (prevEffective == Numeric && nextEffective == Numeric) {
                 // WB8: Numeric × Numeric
             } else if (isAHLetter(prevEffective) && nextEffective == Numeric) {
                 // WB9: AHLetter × Numeric
             } else if (prevEffective == Numeric && isAHLetter(nextEffective)) {
                 // WB10: Numeric × AHLetter
-            } else if (nextEffective == Numeric && (prevEffective == MidNum || isMidNumLetQ(prevEffective))) {
+            } else if (prevPrevEffective == Numeric && (prevEffective == MidNum || isMidNumLetQ(prevEffective))
+                && nextEffective == Numeric) {
                 // WB11: Numeric (MidNum | MidNumLetQ) × Numeric
-                bool foundPattern = false;
-                size_t midPos = i;
-                while (midPos > 0 && isIgnoredForWB4(props[midPos])) --midPos;
-                if (midPos > 0) {
-                    size_t beforeMidPos = midPos - 1;
-                    while (beforeMidPos > 0 && isIgnoredForWB4(props[beforeMidPos])) --beforeMidPos;
-                    if (props[beforeMidPos] == Numeric) {
-                        foundPattern = true;
-                    }
-                }
-                if (foundPattern) {
-                    // Do not break
-                } else {
-                    breakWord = true;
-                }
             } else if (prevEffective == Numeric
                 && (nextEffective == MidNum || isMidNumLetQ(nextEffective))
                 && nextNextEffective == Numeric) {
@@ -219,7 +168,7 @@ namespace word_break {
             else if (prevEffective == ExtendNumLet
                 && (isAHLetter(nextEffective) || nextEffective == Numeric || nextEffective == Katakana)) {
                 // Do not break
-            } else if (nextProp == Regional_Indicator && regionIndicatorCount % 2 == 1) {
+            } else if (nextEffective == Regional_Indicator && regionIndicatorCount % 2 == 1) {
                 // WB15: sot (RI RI)* RI × RI
                 // WB16: [^RI] (RI RI)* RI × RI
             } else {
@@ -228,10 +177,12 @@ namespace word_break {
             }
 
             // Update regional indicator count
-            if (nextProp == Regional_Indicator) {
-                ++regionIndicatorCount;
-            } else {
-                regionIndicatorCount = 0;
+            if (!isIgnoredForWB4(nextProp)) {
+                if (nextProp == Regional_Indicator) {
+                    ++regionIndicatorCount;
+                } else {
+                    regionIndicatorCount = 0;
+                }
             }
 
             if (breakWord) {
