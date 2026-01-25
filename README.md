@@ -1,6 +1,13 @@
 # Grapheme Cluster Break
 
 [![Unicode 17.0.0](https://img.shields.io/badge/Unicode-17.0.0-blue.svg)](https://www.unicode.org/versions/Unicode17.0.0/)
+[![C++ Unit Tests](https://github.com/CyberZHG/GraphemeClusterBreak/actions/workflows/cpp-unit-tests.yml/badge.svg)](https://github.com/CyberZHG/GraphemeClusterBreak/actions/workflows/cpp-unit-tests.yml)
+[![Python Build & Test](https://github.com/CyberZHG/GraphemeClusterBreak/actions/workflows/python-build-test.yml/badge.svg)](https://github.com/CyberZHG/GraphemeClusterBreak/actions/workflows/python-build-test.yml)
+[![WASM Build & Test](https://github.com/CyberZHG/GraphemeClusterBreak/actions/workflows/wasm-build-test.yml/badge.svg)](https://github.com/CyberZHG/GraphemeClusterBreak/actions/workflows/wasm-build-test.yml)
+[![](https://img.shields.io/pypi/v/grapheme-cluster-break)](https://pypi.org/project/grapheme-cluster-break/)
+[![](https://img.shields.io/pypi/v/grapheme-cluster-break)](https://www.npmjs.com/package/grapheme-cluster-break)
+[![Coverage Status](https://coveralls.io/repos/github/CyberZHG/GraphemeClusterBreak/badge.svg?branch=main)](https://coveralls.io/github/CyberZHG/GraphemeClusterBreak?branch=main)
+![](https://visitor-badge.laobi.icu/badge?page_id=cyberzhg.GraphemeClusterBreak)
 
 A high-performance library for segmenting Unicode strings into **grapheme clusters** (user-perceived characters) according to [UAX #29: Unicode Text Segmentation](https://www.unicode.org/reports/tr29/).
 
