@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <ostream>
 
-namespace grapheme_cluster {
+namespace grapheme_break {
 
     enum class GraphemeClusterBreakProperty {
         CR,

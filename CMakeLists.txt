@@ -9,6 +9,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(GRAPHEME_CLUSTER_BREAK_ENABLE_STRICT "Use strict compile options" OFF)
 option(GRAPHEME_CLUSTER_BREAK_ENABLE_COVERAGE "Enable coverage reporting" OFF)
 option(GRAPHEME_CLUSTER_BREAK_ENABLE_TESTS "Build tests" OFF)
+option(GRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK "Enable word break segmentation" OFF)
 option(GRAPHEME_CLUSTER_BREAK_BIND_PYTHON "Enable PYTHON binding" OFF)
 option(GRAPHEME_CLUSTER_BREAK_BIND_ES "Enable ECMAScript binding" OFF)
 
@@ -37,16 +38,33 @@ if(GRAPHEME_CLUSTER_BREAK_ENABLE_COVERAGE)
     endif()
 endif()
 
-add_library(GraphemeClusterBreak STATIC
-        include/break_properties.h
-        src/break_properties.cpp
-        include/grapheme_cluster.h
-        src/grapheme_cluster.cpp
+set(GRAPHEME_CLUSTER_BREAK_SOURCES
+        include/unicode_utils.h
+        src/unicode_utils.cpp
+        include/grapheme_break_properties.h
+        src/grapheme_break_properties.cpp
+        include/grapheme_break.h
+        src/grapheme_break.cpp
 )
+
+if(GRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK)
+    list(APPEND GRAPHEME_CLUSTER_BREAK_SOURCES
+            include/word_break_properties.h
+            src/word_break_properties.cpp
+            include/word_break.h
+            src/word_break.cpp
+    )
+endif()
+
+add_library(GraphemeClusterBreak STATIC ${GRAPHEME_CLUSTER_BREAK_SOURCES})
 
 target_include_directories(GraphemeClusterBreak
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+if(GRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK)
+    target_compile_definitions(GraphemeClusterBreak PUBLIC GRAPHEME_CLUSTER_BREAK_WORD_BREAK_ENABLED)
+endif()
 
 if(GRAPHEME_CLUSTER_BREAK_ENABLE_TESTS)
     enable_testing()
@@ -61,13 +79,23 @@ if(GRAPHEME_CLUSTER_BREAK_ENABLE_TESTS)
 
     FetchContent_MakeAvailable(googletest)
 
-    add_executable(runTests
+    set(TEST_SOURCES
             tests/main.cpp
-            tests/test_break_properties.cpp
+            tests/test_grapheme_break_properties.cpp
             tests/test_grapheme_break_all.cpp
             tests/test_grapheme_break_all_utf8.cpp
             tests/test_grapheme_break_basic.cpp
     )
+
+    if(GRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK)
+        list(APPEND TEST_SOURCES
+                tests/test_word_break_properties.cpp
+                tests/test_word_break_all.cpp
+                tests/test_word_break_all_utf8.cpp
+        )
+    endif()
+
+    add_executable(runTests ${TEST_SOURCES})
 
     target_link_libraries(runTests
             PRIVATE GraphemeClusterBreak

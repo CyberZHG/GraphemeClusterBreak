@@ -99,12 +99,11 @@ console.log(combined);  // ['é']
 ### C++
 
 ```cpp
-#include <grapheme_cluster.h>
+#include "grapheme_break.h"
 #include <iostream>
+using namespace grapheme_break;
 
 int main() {
-    using namespace grapheme_cluster;
-
     // UTF-8 string input
     auto clusters = segmentGraphemeClusters("👨‍👩‍👧‍👦");
     for (const auto& cluster : clusters) {

@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace grapheme_cluster {
+namespace grapheme_break {
 
     /**
      * @brief Segment a UTF-8 string into grapheme clusters.

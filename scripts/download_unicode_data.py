@@ -8,6 +8,8 @@ OUTPUT_DIR = Path(__file__).parent.parent / "ucd"
 FILES = [
     "auxiliary/GraphemeBreakProperty.txt",
     "auxiliary/GraphemeBreakTest.txt",
+    "auxiliary/WordBreakProperty.txt",
+    "auxiliary/WordBreakTest.txt",
     "emoji/emoji-data.txt",
     "DerivedCoreProperties.txt",
 ]

@@ -51,7 +51,7 @@ def generate_codes():
     codes += f"    static constexpr int NUM_GRAPHEME_CLUSTER_BREAK_RANGES = {len(break_properties)};\n\n"
     codes += "    static const std::int32_t GRAPHEME_CLUSTER_BREAK_RANGES[] = {\n"
     for i, (start, end, _) in enumerate(break_properties):
-        if i != 0 and i % 5 == 0 and i + 1 != len(break_properties):
+        if i != 0 and i % 5 == 0:
             codes += "\n"
         if i % 5 == 0:
             codes += "        "
@@ -59,7 +59,7 @@ def generate_codes():
     codes += "    \n};\n\n"
     codes += "    static const GraphemeClusterBreakProperty GRAPHEME_CLUSTER_BREAK_PROPERTIES[] = {\n"
     for i, (_, _, prop) in enumerate(break_properties):
-        if i != 0 and i % 5 == 0 and i + 1 != len(break_properties):
+        if i != 0 and i % 5 == 0:
             codes += "\n"
         if i % 5 == 0:
             codes += "        "
@@ -70,20 +70,20 @@ def generate_codes():
     codes += f"    static constexpr int NUM_INDIC_CONJUNCT_BREAK_RANGES = {len(incb_properties)};\n\n"
     codes += "    static const std::int32_t INDIC_CONJUNCT_BREAK_RANGES[] = {\n"
     for i, (start, end, _) in enumerate(incb_properties):
-        if i != 0 and i % 5 == 0 and i + 1 != len(incb_properties):
+        if i != 0 and i % 5 == 0:
             codes += "\n"
         if i % 5 == 0:
             codes += "        "
         codes += f"0x{start:04X}, 0x{end:04X}, "
-    codes += "    \n};\n\n"
+    codes += "\n    };\n\n"
     codes += "    static const IndicConjunctBreakProperty INDIC_CONJUNCT_BREAK_PROPERTIES[] = {\n"
     for i, (_, _, prop) in enumerate(incb_properties):
-        if i != 0 and i % 5 == 0 and i + 1 != len(incb_properties):
+        if i != 0 and i % 5 == 0:
             codes += "\n"
         if i % 5 == 0:
             codes += "        "
         codes += f"{prop}, "
-    codes += "    \n};\n"
+    codes += "\n    };\n"
 
     with open(DATA_DIR / "_properties.cpp", "w") as f:
         f.write(codes)

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
-#include "break_properties.h"
-using namespace grapheme_cluster;
+#include "grapheme_break_properties.h"
+using namespace grapheme_break;
 
 TEST(TestFindBreakProperty, uniform_sampling) {
     for (int32_t code = 0; code < 0xEFFFF; code += 377) {

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "grapheme_cluster.h"
+#include "grapheme_break.h"
 using namespace std;
-using namespace grapheme_cluster;
+using namespace grapheme_break;
 
 TEST(TestSegmentBasic, EmptyString) {
     const string s;

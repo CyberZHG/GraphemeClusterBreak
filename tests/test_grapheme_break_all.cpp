@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <cstdint>
-#include "grapheme_cluster.h"
+#include "grapheme_break.h"
 
-using namespace grapheme_cluster;
+using namespace grapheme_break;
 
 namespace {
 

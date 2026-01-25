@@ -112,7 +112,7 @@ def segments_to_cpp_string_vector(segments: list) -> str:
 def main():
     test_cases = []
 
-    with open(DATA_DIR / "GraphemeBreakTest.txt", encoding="utf-8") as f:
+    with open(DATA_DIR / "WordBreakTest.txt", encoding="utf-8") as f:
         for line_no, line in enumerate(f, 1):
             line = line.strip()
             if not line or line.startswith("#"):
@@ -129,9 +129,9 @@ def main():
     cpp_code = '''#include <gtest/gtest.h>
 #include <vector>
 #include <cstdint>
-#include "grapheme_break.h"
+#include "word_break.h"
 
-using namespace grapheme_break;
+using namespace word_break;
 
 namespace {
 
@@ -142,11 +142,11 @@ struct TestCase {
     const char* comment;
 };
 
-class GraphemeBreakTest : public ::testing::TestWithParam<TestCase> {};
+class WordBreakTest : public ::testing::TestWithParam<TestCase> {};
 
-TEST_P(GraphemeBreakTest, Segmentation) {
+TEST_P(WordBreakTest, Segmentation) {
     const auto& [line_no, input, expected, comment] = GetParam();
-    const auto result = segmentGraphemeClusters(input);
+    const auto result = segmentWords(input);
     EXPECT_EQ(result, expected) << "Failed at line " << line_no << ": " << comment;
 }
 
@@ -163,14 +163,14 @@ const TestCase test_cases[] = {
 
 INSTANTIATE_TEST_SUITE_P(
     AllCases,
-    GraphemeBreakTest,
+    WordBreakTest,
     ::testing::ValuesIn(test_cases)
 );
 
 }
 '''
 
-    with open(TESTS_DIR / "test_grapheme_break_all.cpp", "w", encoding="utf-8") as f:
+    with open(TESTS_DIR / "test_word_break_all.cpp", "w", encoding="utf-8") as f:
         f.write(cpp_code)
 
     print(f"Generated {len(test_cases)} test cases (codepoints)")
@@ -179,9 +179,9 @@ INSTANTIATE_TEST_SUITE_P(
     cpp_code_utf8 = '''#include <gtest/gtest.h>
 #include <vector>
 #include <string>
-#include "grapheme_break.h"
+#include "word_break.h"
 
-using namespace grapheme_break;
+using namespace word_break;
 
 namespace {
 
@@ -192,11 +192,11 @@ struct TestCase {
     const char* comment;
 };
 
-class GraphemeBreakUtf8Test : public ::testing::TestWithParam<TestCase> {};
+class WordBreakUtf8Test : public ::testing::TestWithParam<TestCase> {};
 
-TEST_P(GraphemeBreakUtf8Test, Segmentation) {
+TEST_P(WordBreakUtf8Test, Segmentation) {
     const auto& [line_no, input, expected, comment] = GetParam();
-    const auto result = segmentGraphemeClusters(input);
+    const auto result = segmentWords(input);
     EXPECT_EQ(result, expected) << "Failed at line " << line_no << ": " << comment;
 }
 
@@ -213,14 +213,14 @@ const TestCase test_cases[] = {
 
 INSTANTIATE_TEST_SUITE_P(
     AllCases,
-    GraphemeBreakUtf8Test,
+    WordBreakUtf8Test,
     ::testing::ValuesIn(test_cases)
 );
 
 }
 '''
 
-    with open(TESTS_DIR / "test_grapheme_break_all_utf8.cpp", "w", encoding="utf-8") as f:
+    with open(TESTS_DIR / "test_word_break_all_utf8.cpp", "w", encoding="utf-8") as f:
         f.write(cpp_code_utf8)
 
     print(f"Generated {len(test_cases)} test cases (utf8)")
