@@ -1,5 +1,6 @@
 import urllib.request
 from pathlib import Path
+import time
 
 UNICODE_VERSION = "17.0.0"
 BASE_URL = f"https://www.unicode.org/Public/{UNICODE_VERSION}/ucd/"
@@ -10,6 +11,8 @@ FILES = [
     "auxiliary/GraphemeBreakTest.txt",
     "auxiliary/WordBreakProperty.txt",
     "auxiliary/WordBreakTest.txt",
+    "auxiliary/SentenceBreakProperty.txt",
+    "auxiliary/SentenceBreakTest.txt",
     "emoji/emoji-data.txt",
     "DerivedCoreProperties.txt",
 ]
@@ -30,6 +33,7 @@ def main():
         OUTPUT_DIR.mkdir(exist_ok=True)
     for filename in FILES:
         download_file(filename)
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,5 @@
-#ifndef GRAPHEMEBREAK_PROPERTIES_H
-#define GRAPHEMEBREAK_PROPERTIES_H
+#ifndef GRAPHEME_CLUSTER_BREAK_PROPERTIES_H
+#define GRAPHEME_CLUSTER_BREAK_PROPERTIES_H
 
 #include <cstdint>
 #include <ostream>
@@ -34,4 +34,4 @@ namespace grapheme_break {
 
 }
 
-#endif //GRAPHEMEBREAK_PROPERTIES_H
+#endif //GRAPHEME_CLUSTER_BREAK_PROPERTIES_H

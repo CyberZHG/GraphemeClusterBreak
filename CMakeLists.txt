@@ -10,6 +10,7 @@ option(GRAPHEME_CLUSTER_BREAK_ENABLE_STRICT "Use strict compile options" OFF)
 option(GRAPHEME_CLUSTER_BREAK_ENABLE_COVERAGE "Enable coverage reporting" OFF)
 option(GRAPHEME_CLUSTER_BREAK_ENABLE_TESTS "Build tests" OFF)
 option(GRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK "Enable word break segmentation" OFF)
+option(GRAPHEME_CLUSTER_BREAK_ENABLE_SENTENCE_BREAK "Enable sentence break segmentation" OFF)
 option(GRAPHEME_CLUSTER_BREAK_BIND_PYTHON "Enable PYTHON binding" OFF)
 option(GRAPHEME_CLUSTER_BREAK_BIND_ES "Enable ECMAScript binding" OFF)
 
@@ -58,6 +59,13 @@ if(GRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK)
     )
 endif()
 
+if(GRAPHEME_CLUSTER_BREAK_ENABLE_SENTENCE_BREAK)
+    list(APPEND GRAPHEME_CLUSTER_BREAK_SOURCES
+            include/sentence_break_properties.h
+            src/sentence_break_properties.cpp
+    )
+endif()
+
 add_library(GraphemeClusterBreak STATIC ${GRAPHEME_CLUSTER_BREAK_SOURCES})
 
 target_include_directories(GraphemeClusterBreak
@@ -96,6 +104,12 @@ if(GRAPHEME_CLUSTER_BREAK_ENABLE_TESTS)
                 tests/test_word_break_basic.cpp
                 tests/test_word_break_all.cpp
                 tests/test_word_break_all_utf8.cpp
+        )
+    endif()
+
+    if(GRAPHEME_CLUSTER_BREAK_ENABLE_SENTENCE_BREAK)
+        list(APPEND TEST_SOURCES
+                tests/test_sentence_break_properties.cpp
         )
     endif()
 

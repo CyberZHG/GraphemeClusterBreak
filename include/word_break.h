@@ -1,5 +1,5 @@
-#ifndef GRAPHEMEBREAK_WORD_BREAK_H
-#define GRAPHEMEBREAK_WORD_BREAK_H
+#ifndef GRAPHEME_CLUSTER_BREAK_WORD_BREAK_H
+#define GRAPHEME_CLUSTER_BREAK_WORD_BREAK_H
 
 #include <string>
 #include <vector>
@@ -32,4 +32,4 @@ namespace word_break {
 
 }
 
-#endif //GRAPHEMEBREAK_WORD_BREAK_H
+#endif //GRAPHEME_CLUSTER_BREAK_WORD_BREAK_H

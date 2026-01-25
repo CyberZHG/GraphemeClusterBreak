@@ -4,6 +4,8 @@ DATA_DIR = Path(__file__).parent.parent / "ucd"
 
 FILES = [
     "GraphemeBreakProperty.txt",
+    "WordBreakProperty.txt",
+    "SentenceBreakProperty.txt",
     "emoji-data.txt",
     "DerivedCoreProperties.txt",
 ]
