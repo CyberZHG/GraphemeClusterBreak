@@ -35,8 +35,15 @@ def compress_properties(properties, name):
     print(f"# {name}: {len(properties)}")
     n, m = len(properties), 1
     for i in range(1, n):
-        if properties[m - 1][1] + 1 == properties[i][0] and properties[m - 1][2] == properties[i][2]:
-            properties[m - 1] = (properties[m - 1][0], properties[i][1], properties[m - 1][2])
+        if (
+            properties[m - 1][1] + 1 == properties[i][0]
+            and properties[m - 1][2] == properties[i][2]
+        ):
+            properties[m - 1] = (
+                properties[m - 1][0],
+                properties[i][1],
+                properties[m - 1][2],
+            )
         else:
             properties[m] = properties[i]
             m += 1
@@ -87,6 +94,7 @@ def generate_codes():
 
     with open(DATA_DIR / "_grapheme_break_properties.cpp", "w") as f:
         f.write(codes)
+
 
 def main():
     # Parse GraphemeBreakProperty.txt

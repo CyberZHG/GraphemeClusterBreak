@@ -63,6 +63,8 @@ if(GRAPHEME_CLUSTER_BREAK_ENABLE_SENTENCE_BREAK)
     list(APPEND GRAPHEME_CLUSTER_BREAK_SOURCES
             include/sentence_break_properties.h
             src/sentence_break_properties.cpp
+            include/sentence_break.h
+            src/sentence_break.cpp
     )
 endif()
 
@@ -110,6 +112,9 @@ if(GRAPHEME_CLUSTER_BREAK_ENABLE_TESTS)
     if(GRAPHEME_CLUSTER_BREAK_ENABLE_SENTENCE_BREAK)
         list(APPEND TEST_SOURCES
                 tests/test_sentence_break_properties.cpp
+                tests/test_sentence_break_basic.cpp
+                tests/test_sentence_break_all.cpp
+                tests/test_sentence_break_all_utf8.cpp
         )
     endif()
 

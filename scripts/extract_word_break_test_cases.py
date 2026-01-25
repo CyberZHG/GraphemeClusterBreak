@@ -86,8 +86,14 @@ def codepoint_to_utf8_bytes(cp: int) -> bytes:
     elif cp < 0x10000:
         return bytes([0xE0 | (cp >> 12), 0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F)])
     else:
-        return bytes([0xF0 | (cp >> 18), 0x80 | ((cp >> 12) & 0x3F),
-                      0x80 | ((cp >> 6) & 0x3F), 0x80 | (cp & 0x3F)])
+        return bytes(
+            [
+                0xF0 | (cp >> 18),
+                0x80 | ((cp >> 12) & 0x3F),
+                0x80 | ((cp >> 6) & 0x3F),
+                0x80 | (cp & 0x3F),
+            ]
+        )
 
 
 def codepoints_to_utf8_bytes(codepoints: list) -> bytes:
@@ -100,12 +106,18 @@ def codepoints_to_utf8_bytes(codepoints: list) -> bytes:
 
 def bytes_to_cpp_string_literal(data: bytes) -> str:
     """Convert bytes to a C++ UTF-8 string literal."""
-    return 'std::string("' + ''.join(f'\\x{byte:02X}' for byte in data) + f'", {len(data)})'
+    return (
+        'std::string("'
+        + "".join(f"\\x{byte:02X}" for byte in data)
+        + f'", {len(data)})'
+    )
 
 
 def segments_to_cpp_string_vector(segments: list) -> str:
     """Convert segments to C++ vector<string> initializer."""
-    literals = [bytes_to_cpp_string_literal(codepoints_to_utf8_bytes(seg)) for seg in segments]
+    literals = [
+        bytes_to_cpp_string_literal(codepoints_to_utf8_bytes(seg)) for seg in segments
+    ]
     return "{" + ", ".join(literals) + "}"
 
 
@@ -126,7 +138,7 @@ def main():
             test_cases.append((line_no, codepoints, segments, comment))
 
     # Generate C++ test file
-    cpp_code = '''#include <gtest/gtest.h>
+    cpp_code = """#include <gtest/gtest.h>
 #include <vector>
 #include <cstdint>
 #include "word_break.h"
@@ -151,15 +163,17 @@ TEST_P(WordBreakTest, Segmentation) {
 }
 
 const TestCase test_cases[] = {
-'''
+"""
 
     for line_no, codepoints, segments, comment in test_cases:
         input_str = codepoints_to_cpp_vector(codepoints)
         expected_str = segments_to_cpp_vector(segments)
         comment_escaped = escape_cpp_string(comment)
-        cpp_code += f'    {{{line_no}, {input_str}, {expected_str}, "{comment_escaped}"}},\n'
+        cpp_code += (
+            f'    {{{line_no}, {input_str}, {expected_str}, "{comment_escaped}"}},\n'
+        )
 
-    cpp_code += '''};
+    cpp_code += """};
 
 INSTANTIATE_TEST_SUITE_P(
     AllCases,
@@ -168,7 +182,7 @@ INSTANTIATE_TEST_SUITE_P(
 );
 
 }
-'''
+"""
 
     with open(TESTS_DIR / "test_word_break_all.cpp", "w", encoding="utf-8") as f:
         f.write(cpp_code)
@@ -176,7 +190,7 @@ INSTANTIATE_TEST_SUITE_P(
     print(f"Generated {len(test_cases)} test cases (codepoints)")
 
     # Generate UTF-8 string test file
-    cpp_code_utf8 = '''#include <gtest/gtest.h>
+    cpp_code_utf8 = """#include <gtest/gtest.h>
 #include <vector>
 #include <string>
 #include "word_break.h"
@@ -201,15 +215,17 @@ TEST_P(WordBreakUtf8Test, Segmentation) {
 }
 
 const TestCase test_cases[] = {
-'''
+"""
 
     for line_no, codepoints, segments, comment in test_cases:
         input_str = bytes_to_cpp_string_literal(codepoints_to_utf8_bytes(codepoints))
         expected_str = segments_to_cpp_string_vector(segments)
         comment_escaped = escape_cpp_string(comment)
-        cpp_code_utf8 += f'    {{{line_no}, {input_str}, {expected_str}, "{comment_escaped}"}},\n'
+        cpp_code_utf8 += (
+            f'    {{{line_no}, {input_str}, {expected_str}, "{comment_escaped}"}},\n'
+        )
 
-    cpp_code_utf8 += '''};
+    cpp_code_utf8 += """};
 
 INSTANTIATE_TEST_SUITE_P(
     AllCases,
@@ -218,7 +234,7 @@ INSTANTIATE_TEST_SUITE_P(
 );
 
 }
-'''
+"""
 
     with open(TESTS_DIR / "test_word_break_all_utf8.cpp", "w", encoding="utf-8") as f:
         f.write(cpp_code_utf8)

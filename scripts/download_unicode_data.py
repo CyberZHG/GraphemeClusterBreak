@@ -1,6 +1,6 @@
+import time
 import urllib.request
 from pathlib import Path
-import time
 
 UNICODE_VERSION = "17.0.0"
 BASE_URL = f"https://www.unicode.org/Public/{UNICODE_VERSION}/ucd/"
@@ -17,6 +17,7 @@ FILES = [
     "DerivedCoreProperties.txt",
 ]
 
+
 def download_file(filename: str):
     url = BASE_URL + filename
     output_path = OUTPUT_DIR / filename.split("/")[-1]
@@ -28,12 +29,14 @@ def download_file(filename: str):
     except Exception as e:
         print(f"  Error: {e}")
 
+
 def main():
     if not OUTPUT_DIR.exists():
         OUTPUT_DIR.mkdir(exist_ok=True)
     for filename in FILES:
         download_file(filename)
         time.sleep(1)
+
 
 if __name__ == "__main__":
     main()

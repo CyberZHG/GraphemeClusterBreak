@@ -10,6 +10,7 @@ FILES = [
     "DerivedCoreProperties.txt",
 ]
 
+
 def show_properties(filename: str):
     filepath = DATA_DIR / filename
     properties = set()
@@ -26,6 +27,7 @@ def show_properties(filename: str):
 def main():
     for filename in FILES:
         show_properties(filename)
+
 
 if __name__ == "__main__":
     main()
