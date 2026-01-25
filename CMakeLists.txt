@@ -41,6 +41,8 @@ endif()
 set(GRAPHEME_CLUSTER_BREAK_SOURCES
         include/unicode_utils.h
         src/unicode_utils.cpp
+        include/emoji_pictographic_properties.h
+        src/emoji_pictographic_properties.cpp
         include/grapheme_break_properties.h
         src/grapheme_break_properties.cpp
         include/grapheme_break.h
@@ -81,15 +83,17 @@ if(GRAPHEME_CLUSTER_BREAK_ENABLE_TESTS)
 
     set(TEST_SOURCES
             tests/main.cpp
+            tests/test_emoji_properties.cpp
             tests/test_grapheme_break_properties.cpp
+            tests/test_grapheme_break_basic.cpp
             tests/test_grapheme_break_all.cpp
             tests/test_grapheme_break_all_utf8.cpp
-            tests/test_grapheme_break_basic.cpp
     )
 
     if(GRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK)
         list(APPEND TEST_SOURCES
                 tests/test_word_break_properties.cpp
+                tests/test_word_break_basic.cpp
                 tests/test_word_break_all.cpp
                 tests/test_word_break_all_utf8.cpp
         )

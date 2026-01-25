@@ -1,5 +1,6 @@
 #include "grapheme_break.h"
 #include "grapheme_break_properties.h"
+#include "emoji_pictographic_properties.h"
 #include "unicode_utils.h"
 
 #include <format>
@@ -18,7 +19,6 @@ namespace grapheme_break {
     static constexpr auto ZWJ = GraphemeClusterBreakProperty::ZWJ;
     static constexpr auto SpacingMark = GraphemeClusterBreakProperty::SpacingMark;
     static constexpr auto Prepend = GraphemeClusterBreakProperty::Prepend;
-    static constexpr auto Extended_Pictographic = GraphemeClusterBreakProperty::Extended_Pictographic;
     static constexpr auto Regional_Indicator = GraphemeClusterBreakProperty::Regional_Indicator;
 
     static constexpr auto InCB_Consonant = IndicConjunctBreakProperty::InCB_Consonant;
@@ -68,7 +68,7 @@ namespace grapheme_break {
             }
         }
         auto emojiModifierState = EmojiModifierState::Initial;
-        if (currentBreakProperty == Extended_Pictographic) {
+        if (isExtendedPictographic(codepoints[0])) {
             emojiModifierState = EmojiModifierState::Pictographic;
         }
         size_t regionIndicatorCount = 0;
@@ -79,6 +79,7 @@ namespace grapheme_break {
         for (size_t i = 0; i + 1 < n; ++i) {
             const auto nextBreakProperty = findBreakProperty(codepoints[i + 1]);
             const auto nextIndicBreakProperty = findIndicBreakProperty(codepoints[i + 1]);
+            const auto isNextExtendedPictographic = isExtendedPictographic(codepoints[i + 1]);
 
             bool breakCluster = false;
             if (currentBreakProperty == CR && nextBreakProperty == LF) {
@@ -107,7 +108,7 @@ namespace grapheme_break {
                 // GB9c: \p{InCB=Consonant} [ \p{InCB=Extend} \p{InCB=Linker} ]*
                 //       \p{InCB=Linker}
                 //       [ \p{InCB=Extend} \p{InCB=Linker} ]* × \p{InCB=Consonant}
-            } else if (emojiModifierState == EmojiModifierState::ZWJ && nextBreakProperty == Extended_Pictographic) {
+            } else if (emojiModifierState == EmojiModifierState::ZWJ && isNextExtendedPictographic) {
                 // GB11: \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
             } else if (nextBreakProperty == Regional_Indicator && regionIndicatorCount % 2 == 1) {
                 // GB12: sot (RI RI)* RI × RI
@@ -161,7 +162,7 @@ namespace grapheme_break {
                     emojiModifierState = EmojiModifierState::Initial;
                     break;
             }
-            if (emojiModifierState == EmojiModifierState::Initial && nextBreakProperty == Extended_Pictographic) {
+            if (emojiModifierState == EmojiModifierState::Initial && isNextExtendedPictographic) {
                 emojiModifierState = EmojiModifierState::Pictographic;
             }
 

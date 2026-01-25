@@ -25,7 +25,6 @@ namespace word_break {
         Numeric,
         ExtendNumLet,
         WSegSpace,
-        Extended_Pictographic,
         Other,
     };
 

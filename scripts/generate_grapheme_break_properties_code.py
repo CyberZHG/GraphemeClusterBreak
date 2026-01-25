@@ -56,7 +56,7 @@ def generate_codes():
         if i % 5 == 0:
             codes += "        "
         codes += f"0x{start:04X}, 0x{end:04X}, "
-    codes += "    \n};\n\n"
+    codes += "\n    };\n\n"
     codes += "    static const GraphemeClusterBreakProperty GRAPHEME_CLUSTER_BREAK_PROPERTIES[] = {\n"
     for i, (_, _, prop) in enumerate(break_properties):
         if i != 0 and i % 5 == 0:
@@ -64,7 +64,7 @@ def generate_codes():
         if i % 5 == 0:
             codes += "        "
         codes += f"{prop}, "
-    codes += "    \n};\n\n"
+    codes += "\n    };\n\n"
 
     # Indic Conjunct Break Properties
     codes += f"    static constexpr int NUM_INDIC_CONJUNCT_BREAK_RANGES = {len(incb_properties)};\n\n"
@@ -85,7 +85,7 @@ def generate_codes():
         codes += f"{prop}, "
     codes += "\n    };\n"
 
-    with open(DATA_DIR / "_properties.cpp", "w") as f:
+    with open(DATA_DIR / "_grapheme_break_properties.cpp", "w") as f:
         f.write(codes)
 
 def main():
@@ -113,19 +113,6 @@ def main():
                 continue
             prop = prop.replace("; ", "_")
             add_to_incb_properties(unicode_range, prop)
-
-    # Parse emoji-data.txt for Extended_Pictographic
-    with open(DATA_DIR / "emoji-data.txt") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            unicode_range, prop = line.split(";", 1)
-            unicode_range = unicode_range.strip()
-            prop = prop.split("#")[0].strip()
-            if prop != "Extended_Pictographic":
-                continue
-            add_to_break_properties(unicode_range, prop)
 
     compress_properties(break_properties, "Break Properties")
     compress_properties(incb_properties, "InCB Properties")

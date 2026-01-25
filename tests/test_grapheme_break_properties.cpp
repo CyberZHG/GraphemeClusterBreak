@@ -29,7 +29,6 @@ TEST(TestGraphemeClusterBreakPropertyOutput, all_values) {
     EXPECT_EQ(to_string(GraphemeClusterBreakProperty::ZWJ), "ZWJ");
     EXPECT_EQ(to_string(GraphemeClusterBreakProperty::SpacingMark), "SpacingMark");
     EXPECT_EQ(to_string(GraphemeClusterBreakProperty::Prepend), "Prepend");
-    EXPECT_EQ(to_string(GraphemeClusterBreakProperty::Extended_Pictographic), "Extended_Pictographic");
     EXPECT_EQ(to_string(GraphemeClusterBreakProperty::Regional_Indicator), "Regional_Indicator");
     EXPECT_EQ(to_string(GraphemeClusterBreakProperty::Other), "Other");
 }

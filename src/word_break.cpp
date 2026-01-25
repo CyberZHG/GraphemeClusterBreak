@@ -1,5 +1,6 @@
 #include "word_break.h"
 #include "word_break_properties.h"
+#include "emoji_pictographic_properties.h"
 #include "unicode_utils.h"
 
 #include <format>
@@ -24,7 +25,6 @@ namespace word_break {
     static constexpr auto Numeric = WordBreakProperty::Numeric;
     static constexpr auto ExtendNumLet = WordBreakProperty::ExtendNumLet;
     static constexpr auto WSegSpace = WordBreakProperty::WSegSpace;
-    static constexpr auto Extended_Pictographic = WordBreakProperty::Extended_Pictographic;
     static constexpr auto Other = WordBreakProperty::Other;
 
     // Helper: AHLetter = ALetter | Hebrew_Letter
@@ -123,7 +123,7 @@ namespace word_break {
             } else if (nextProp == Newline || nextProp == CR || nextProp == LF) {
                 // WB3b: ÷ (Newline | CR | LF)
                 breakWord = true;
-            } else if (currentProp == ZWJ && nextProp == Extended_Pictographic) {
+            } else if (currentProp == ZWJ && grapheme_break::isExtendedPictographic(codepoints[i + 1])) {
                 // WB3c: ZWJ × \p{Extended_Pictographic}
             } else if (currentProp == WSegSpace && nextProp == WSegSpace) {
                 // WB3d: WSegSpace × WSegSpace

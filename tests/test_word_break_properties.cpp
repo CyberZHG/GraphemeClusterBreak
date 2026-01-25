@@ -34,6 +34,5 @@ TEST(TestWordBreakPropertyOutput, all_values) {
     EXPECT_EQ(to_string(WordBreakProperty::Numeric), "Numeric");
     EXPECT_EQ(to_string(WordBreakProperty::ExtendNumLet), "ExtendNumLet");
     EXPECT_EQ(to_string(WordBreakProperty::WSegSpace), "WSegSpace");
-    EXPECT_EQ(to_string(WordBreakProperty::Extended_Pictographic), "Extended_Pictographic");
     EXPECT_EQ(to_string(WordBreakProperty::Other), "Other");
 }

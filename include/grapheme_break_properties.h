@@ -12,7 +12,7 @@ namespace grapheme_break {
         Control,
         L, V, T, LV, LVT,  // Hangul syllable
         Extend, ZWJ, SpacingMark, Prepend,
-        Extended_Pictographic, Regional_Indicator,  // Emoji
+        Regional_Indicator,  // Emoji
         Other,
     };
 
