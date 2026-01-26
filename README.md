@@ -52,7 +52,7 @@ include(FetchContent)
 FetchContent_Declare(
     GraphemeClusterBreak
     GIT_REPOSITORY https://github.com/CyberZHG/GraphemeClusterBreak.git
-    GIT_TAG main
+    GIT_TAG v1.0.0
 )
 FetchContent_MakeAvailable(GraphemeClusterBreak)
 

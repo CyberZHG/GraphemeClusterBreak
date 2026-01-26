@@ -96,7 +96,6 @@ namespace word_break {
 
             const auto nextEffective = props[nextEffectiveIndices[i]];
             const auto nextNextEffective = props[nextEffectiveIndices[nextEffectiveIndices[i]]];
-
             if (!isIgnoredForWB4(currentProp)) {
                 prevPrevEffective = prevEffective;
                 prevEffective = currentProp;
