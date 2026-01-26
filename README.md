@@ -9,16 +9,22 @@
 [![Coverage Status](https://coveralls.io/repos/github/CyberZHG/GraphemeClusterBreak/badge.svg?branch=main)](https://coveralls.io/github/CyberZHG/GraphemeClusterBreak?branch=main)
 ![](https://visitor-badge.laobi.icu/badge?page_id=cyberzhg.GraphemeClusterBreak)
 
-A high-performance library for segmenting Unicode strings into **grapheme clusters** (user-perceived characters) according to [UAX #29: Unicode Text Segmentation](https://www.unicode.org/reports/tr29/).
+A high-performance library for Unicode text segmentation according to [UAX #29: Unicode Text Segmentation](https://www.unicode.org/reports/tr29/).
 
 ## Features
 
-- Full compliance with Unicode 17.0 grapheme cluster boundary rules
+- Full compliance with Unicode 17.0 text segmentation rules
+- **Grapheme Cluster Break**: Segment text into user-perceived characters
+- **Word Break**: Segment text into words (optional, compile-time flag)
+- **Sentence Break**: Segment text into sentences (optional, compile-time flag)
 - Support for extended grapheme clusters (emoji sequences, Indic conjuncts, etc.)
+- All official Unicode test cases pass
 - Available for **C++**, **Python**, and **JavaScript/WebAssembly**
 - Zero external dependencies for the core C++ library
 
-## What are Grapheme Clusters?
+## Text Segmentation Types
+
+### Grapheme Clusters
 
 A grapheme cluster represents what users perceive as a single character, even when it consists of multiple Unicode code points:
 
@@ -28,6 +34,25 @@ A grapheme cluster represents what users perceive as a single character, even wh
 | `"é"` (e + combining accent) | `["é"]` | 2 |
 | `"👨‍👩‍👧‍👦"` (family emoji) | `["👨‍👩‍👧‍👦"]` | 7 |
 | `"🇨🇳"` (flag) | `["🇨🇳"]` | 2 |
+
+### Word Break
+
+Word segmentation identifies word boundaries in text, handling spaces, punctuation, and language-specific rules:
+
+| Input | Words |
+|-------|-------|
+| `"Hello, world!"` | `["Hello", ",", " ", "world", "!"]` |
+| `"can't"` | `["can't"]` |
+| `"3.14"` | `["3.14"]` |
+
+### Sentence Break
+
+Sentence segmentation identifies sentence boundaries, handling abbreviations and special punctuation:
+
+| Input | Sentences |
+|-------|-----------|
+| `"Hello. World!"` | `["Hello. ", "World!"]` |
+| `"Dr. Smith went home."` | `["Dr. Smith went home."]` |
 
 ## Installation
 
@@ -101,11 +126,10 @@ console.log(combined);  // ['é']
 ```cpp
 #include "grapheme_break.h"
 #include <iostream>
-using namespace grapheme_break;
 
 int main() {
-    // UTF-8 string input
-    auto clusters = segmentGraphemeClusters("👨‍👩‍👧‍👦");
+    // Grapheme cluster segmentation
+    auto clusters = grapheme_break::segmentGraphemeClusters("👨‍👩‍👧‍👦");
     for (const auto& cluster : clusters) {
         std::cout << "[" << cluster << "]";
     }
@@ -113,8 +137,42 @@ int main() {
 
     // Code point input
     std::vector<int32_t> codepoints = {0x0915, 0x094D, 0x0937};  // क्ष
-    auto clusters2 = segmentGraphemeClusters(codepoints);
+    auto clusters2 = grapheme_break::segmentGraphemeClusters(codepoints);
     // Returns: [[0x0915, 0x094D, 0x0937]]
+
+    return 0;
+}
+```
+
+#### Word Break (requires `GRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK=ON`)
+
+```cpp
+#include "word_break.h"
+#include <iostream>
+
+int main() {
+    auto words = word_break::segmentWords("Hello, world!");
+    for (const auto& word : words) {
+        std::cout << "[" << word << "]";
+    }
+    // Output: [Hello][,][ ][world][!]
+
+    return 0;
+}
+```
+
+#### Sentence Break (requires `GRAPHEME_CLUSTER_BREAK_ENABLE_SENTENCE_BREAK=ON`)
+
+```cpp
+#include "sentence_break.h"
+#include <iostream>
+
+int main() {
+    auto sentences = sentence_break::segmentSentences("Hello. World!");
+    for (const auto& sentence : sentences) {
+        std::cout << "[" << sentence << "]";
+    }
+    // Output: [Hello. ][World!]
 
     return 0;
 }
@@ -128,10 +186,30 @@ Segments a string into grapheme clusters.
 
 **Parameters:**
 - `input` - The input string (UTF-8 encoded for C++/Python, native string for JavaScript)
-- `extended` - If `true` (default), uses extended grapheme cluster rules. If `false`, uses legacy rules.
+- `extended` - If `true` (default), uses extended grapheme cluster rules (GB9a, GB9b, GB9c). If `false`, uses legacy rules.
 
 **Returns:**
 - An array/vector of strings, each representing one grapheme cluster.
+
+### `segmentWords(input)` (C++ only, requires compile flag)
+
+Segments a string into words according to Unicode word boundary rules.
+
+**Parameters:**
+- `input` - The input string (UTF-8 encoded) or vector of code points
+
+**Returns:**
+- An array/vector of strings, each representing one word segment.
+
+### `segmentSentences(input)` (C++ only, requires compile flag)
+
+Segments a string into sentences according to Unicode sentence boundary rules.
+
+**Parameters:**
+- `input` - The input string (UTF-8 encoded) or vector of code points
+
+**Returns:**
+- An array/vector of strings, each representing one sentence.
 
 ## Building from Source
 
@@ -145,12 +223,23 @@ Segments a string into grapheme clusters.
 ### Build Commands
 
 ```bash
-# C++ library only
+# C++ library only (grapheme cluster break)
 cmake -B build
 cmake --build build
 
-# With tests
-cmake -B build -DGRAPHEME_CLUSTER_BREAK_ENABLE_TESTS=ON
+# With Word Break support
+cmake -B build -DGRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK=ON
+cmake --build build
+
+# With Sentence Break support
+cmake -B build -DGRAPHEME_CLUSTER_BREAK_ENABLE_SENTENCE_BREAK=ON
+cmake --build build
+
+# With all features and tests
+cmake -B build \
+    -DGRAPHEME_CLUSTER_BREAK_ENABLE_TESTS=ON \
+    -DGRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK=ON \
+    -DGRAPHEME_CLUSTER_BREAK_ENABLE_SENTENCE_BREAK=ON
 cmake --build build
 ctest --test-dir build
 
@@ -161,6 +250,18 @@ pip install .
 cd wasm
 npm run build
 ```
+
+### CMake Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `GRAPHEME_CLUSTER_BREAK_ENABLE_TESTS` | `OFF` | Build unit tests |
+| `GRAPHEME_CLUSTER_BREAK_ENABLE_WORD_BREAK` | `OFF` | Enable word break segmentation |
+| `GRAPHEME_CLUSTER_BREAK_ENABLE_SENTENCE_BREAK` | `OFF` | Enable sentence break segmentation |
+| `GRAPHEME_CLUSTER_BREAK_BIND_PYTHON` | `OFF` | Build Python bindings |
+| `GRAPHEME_CLUSTER_BREAK_BIND_ES` | `OFF` | Build WebAssembly bindings |
+| `GRAPHEME_CLUSTER_BREAK_ENABLE_COVERAGE` | `OFF` | Enable code coverage |
+| `GRAPHEME_CLUSTER_BREAK_ENABLE_STRICT` | `OFF` | Enable strict compiler warnings |
 
 ## License
 
