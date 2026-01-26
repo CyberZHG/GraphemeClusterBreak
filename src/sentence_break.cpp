@@ -160,6 +160,9 @@ namespace sentence_break {
             }
             // SB998: Any × Any (don't break)
 
+            if (breakSentence) {
+                state = SentenceState::Initial;
+            }
             if (!isIgnoredForSB5(nextProp)) {
                 switch (state) {
                     case SentenceState::Initial:
