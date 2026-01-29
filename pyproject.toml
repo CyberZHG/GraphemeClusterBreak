@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "grapheme-cluster-break"
-version = "1.1.0"
+version = "1.1.1"
 description = "A library for segmenting grapheme clusters."
 requires-python = ">=3.8"
 readme = "python/README.md"
@@ -30,12 +30,18 @@ GRAPHEME_CLUSTER_BREAK_BIND_PYTHON = "ON"
 
 [tool.scikit-build.sdist]
 exclude = [
-    ".github",
-    ".gitignore",
-    "demo",
-    "docs",
+    ".*",
+    "build*",
+    "cmake-build*",
+    "dist",
     "tests",
     "wasm",
+    "web",
+    "*.md",
+    "python/tests",
+]
+include = [
+    "python/README.md",
 ]
 
 
